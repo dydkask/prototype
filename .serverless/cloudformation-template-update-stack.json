@@ -1,0 +1,136 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket"
+    },
+    "CreateTodoLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/decom-dev-createTodo"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["lambda.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": ["-", ["dev", "decom", "lambda"]]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": ["logs:CreateLogStream"],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/decom-dev-createTodo:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": ["logs:PutLogEvents"],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/decom-dev-createTodo:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": ["dynamodb:PutItem"],
+                  "Resource": "arn:aws:dynamodb:ap-northeast-2:616058924334:table/todos"
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": ["-", ["decom", "dev", "ap-northeast-2", "lambdaRole"]]
+        }
+      }
+    },
+    "CreateTodoLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/decom/dev/1540103506374-2018-10-21T06:31:46.374Z/decom.zip"
+        },
+        "FunctionName": "decom-dev-createTodo",
+        "Handler": "create.run",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": ["IamRoleLambdaExecution", "Arn"]
+        },
+        "Runtime": "nodejs8.10",
+        "Timeout": 6
+      },
+      "DependsOn": ["CreateTodoLogGroup", "IamRoleLambdaExecution"]
+    },
+    "CreateTodoLambdaVersionUGylCawXYysiPoN2lhsKNaby0Jott5NJWSo407Gn90": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "CreateTodoLambdaFunction"
+        },
+        "CodeSha256": "xteOs1bOw+R05715vP6qmkfnB8jutUXHEsC4GV8xCc4="
+      }
+    },
+    "TodosTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "todos",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "ID",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "ID",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 1,
+          "WriteCapacityUnits": 1
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "CreateTodoLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "CreateTodoLambdaVersionUGylCawXYysiPoN2lhsKNaby0Jott5NJWSo407Gn90"
+      }
+    }
+  }
+}

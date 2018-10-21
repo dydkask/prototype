@@ -1,0 +1,35 @@
+service: decom
+
+provider:
+  name: aws
+  region: ap-northeast-2
+  runtime: nodejs8.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: 'arn:aws:dynamodb:ap-northeast-2:616058924334:table/todos'
+
+functions:
+  createTodo:
+    handler: create.run
+    event:
+      - http:
+          path: todos
+          method: post
+
+resources:
+  Resources:
+    TodosTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: todos
+        AttributeDefinitions:
+          - AttributeName: 'ID'
+            AttributeType: S
+        KeySchema:
+          - AttributeName: 'ID'
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
