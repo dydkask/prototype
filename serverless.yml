@@ -8,28 +8,28 @@ provider:
     - Effect: Allow
       Action:
         - dynamodb:PutItem
-      Resource: 'arn:aws:dynamodb:ap-northeast-2:616058924334:table/todos'
+      Resource: 'arn:aws:dynamodb:ap-northeast-2:616058924334:table/test'
 
 functions:
   createTodo:
     handler: create.run
-    event:
+    events:
       - http:
-          path: todos
+          path: test
           method: post
 
 resources:
   Resources:
-    TodosTable:
+    TodosDynamoDbTable:
       Type: 'AWS::DynamoDB::Table'
       Properties:
-        TableName: todos
         AttributeDefinitions:
-          - AttributeName: 'ID'
+          - AttributeName: id
             AttributeType: S
         KeySchema:
-          - AttributeName: 'ID'
+          - AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+        TableName: test

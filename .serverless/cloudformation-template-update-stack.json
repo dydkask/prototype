@@ -55,7 +55,7 @@
                 {
                   "Effect": "Allow",
                   "Action": ["dynamodb:PutItem"],
-                  "Resource": "arn:aws:dynamodb:ap-northeast-2:616058924334:table/todos"
+                  "Resource": "arn:aws:dynamodb:ap-northeast-2:616058924334:table/test"
                 }
               ]
             }
@@ -74,7 +74,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/decom/dev/1540103506374-2018-10-21T06:31:46.374Z/decom.zip"
+          "S3Key": "serverless/decom/dev/1540108360858-2018-10-21T07:52:40.858Z/decom.zip"
         },
         "FunctionName": "decom-dev-createTodo",
         "Handler": "create.run",
@@ -87,36 +87,151 @@
       },
       "DependsOn": ["CreateTodoLogGroup", "IamRoleLambdaExecution"]
     },
-    "CreateTodoLambdaVersionUGylCawXYysiPoN2lhsKNaby0Jott5NJWSo407Gn90": {
+    "CreateTodoLambdaVersionuB86aJ7i6zv4CIkhf0B6YPZvO276NMtXtjh3KW89Pk": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CreateTodoLambdaFunction"
         },
-        "CodeSha256": "xteOs1bOw+R05715vP6qmkfnB8jutUXHEsC4GV8xCc4="
+        "CodeSha256": "X13UUpC/ChI6maFsLsfw90BXAuQ4iF0dbDR/cb4nmLc="
       }
     },
-    "TodosTable": {
+    "ApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "dev-decom",
+        "EndpointConfiguration": {
+          "Types": ["EDGE"]
+        }
+      }
+    },
+    "ApiGatewayResourceTest": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": ["ApiGatewayRestApi", "RootResourceId"]
+        },
+        "PathPart": "test",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodTestPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceTest"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": ["CreateTodoLambdaFunction", "Arn"]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      }
+    },
+    "ApiGatewayDeployment1540108360950": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "StageName": "dev"
+      },
+      "DependsOn": ["ApiGatewayMethodTestPost"]
+    },
+    "CreateTodoLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": ["CreateTodoLambdaFunction", "Arn"]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": {
+          "Fn::Join": [
+            "",
+            [
+              "apigateway.",
+              {
+                "Ref": "AWS::URLSuffix"
+              }
+            ]
+          ]
+        },
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "TodosDynamoDbTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
-        "TableName": "todos",
         "AttributeDefinitions": [
           {
-            "AttributeName": "ID",
+            "AttributeName": "id",
             "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
-            "AttributeName": "ID",
+            "AttributeName": "id",
             "KeyType": "HASH"
           }
         ],
         "ProvisionedThroughput": {
           "ReadCapacityUnits": 1,
           "WriteCapacityUnits": 1
-        }
+        },
+        "TableName": "test"
       }
     }
   },
@@ -129,7 +244,26 @@
     "CreateTodoLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CreateTodoLambdaVersionUGylCawXYysiPoN2lhsKNaby0Jott5NJWSo407Gn90"
+        "Ref": "CreateTodoLambdaVersionuB86aJ7i6zv4CIkhf0B6YPZvO276NMtXtjh3KW89Pk"
+      }
+    },
+    "ServiceEndpoint": {
+      "Description": "URL of the service endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            ".execute-api.ap-northeast-2.",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/dev"
+          ]
+        ]
       }
     }
   }

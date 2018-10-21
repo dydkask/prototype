@@ -6,7 +6,7 @@ const client = new AWS.DynamoDB.DocumentClient();
 module.exports.run = async (event) => {
   const data = JSON.parse(event.body);
   const params = {
-    TableName: 'todos',
+    TableName: 'test',
     Item: {
       id: uuid(),
       text: data.text,
