@@ -26,8 +26,7 @@ export default class App extends Component {
 
   handleInput(event) {
     if (!event.keyCode === 13) return;
-    console.log(event.keyCode);
-    console.log(event.target.value);
+    console.log(!event.keyCode === 13);
   }
 
   render() {

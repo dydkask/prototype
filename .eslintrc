@@ -3,6 +3,7 @@
   "extends": ["airbnb", "eslint:recommended", "plugin:prettier/recommended", "prettier/react", "react-app"],
   "plugins": ["react", "jsx-a11y", "import", "prettier"],
   "rules": {
+    "no-console": 0,
     "no-unused-vars": 0,
     "react/jsx-filename-extension": 0,
     "react/prefer-stateless-function": [
@@ -11,6 +12,11 @@
         "ignorePureComponents": true
       }
     ],
+    "react/button-has-type": "off",
+    "react/destructuring-assignment": 1,
+    "react/prop-types": 1,
+    "jsx-a11y/label-has-associated-control": 1,
+    "jsx-a11y/label-has-for": 1,
     "jsx-a11y/href-no-hash": "off",
     "quotes": [
       "error",
