@@ -1,4 +1,5 @@
 const path = require('path');
+const { HotModuleReplacementPlugin } = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
@@ -33,6 +34,7 @@ module.exports = {
     ],
   },
   plugins: [
+    new HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       template: './src/index.html',
       filename: './index.html',
@@ -46,6 +48,18 @@ module.exports = {
     extensions: ['.js', '.jsx'],
   },
   devServer: {
+    compress: true,
+    open: true,
     port: 3000,
+    historyApiFallback: true,
+    hot: true,
+    inline: true,
+    overlay: {
+      warnings: false,
+      errors: true,
+    },
+    stats: {
+      color: true,
+    },
   },
 };

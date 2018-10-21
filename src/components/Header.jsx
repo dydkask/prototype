@@ -5,7 +5,7 @@ export default class Header extends Component {
     return (
       <header className="header">
         <h1>todos</h1>
-        <input className="new-todo" placeholder="What needs to be done?" />
+        <input className="new-todo" placeholder="What needs to be done?" onKeyUp={this.props.handleInput} />
       </header>
     );
   }
