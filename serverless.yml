@@ -1,0 +1,35 @@
+service: decom
+
+provider:
+  name: aws
+  region: ap-northeast-2
+  runtime: nodejs8.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: 'arn:aws:dynamodb:ap-northeast-2:616058924334:table/test'
+
+functions:
+  createTodo:
+    handler: create.run
+    events:
+      - http:
+          path: test
+          method: post
+
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: test
